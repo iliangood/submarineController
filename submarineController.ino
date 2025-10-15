@@ -10,6 +10,71 @@
 #define PS2_CLK        12
 
 
+enum class AxisesNames
+{
+    Vx = 0,
+    Vy = 1,
+    Vz = 2,
+    Wx = 3,
+    Wy = 4,
+    Wz = 5
+};
+
+class Axises
+{
+    int16_t axises[6];
+public:
+    Axises() : axises{0, 0, 0, 0, 0, 0} {}
+
+    Axises(const int16_t* axises)
+    {
+        for (char i = 0; i < 6; ++i)
+        {
+            this->axises[i] = clamp(axises[i], -256, 256);
+        }
+    }
+
+    int16_t& operator[](int index)
+    {
+        return axises[index];
+    }
+
+    int16_t& operator[](AxisesNames index)
+    {
+        return axises[static_cast<int>(index)];
+    }
+
+    int16_t operator[](AxisesNames index) const
+    {
+        return axises[static_cast<int>(index)];
+    }
+
+    int16_t operator[](int index) const
+    {
+        return axises[index];
+    }
+
+    Axises(int16_t Vx, int16_t Vy, int16_t Vz, int16_t Wx, int16_t Wy, int16_t Wz)
+    {
+        (*this)[AxisesNames::Vx] = clamp(Vx, -256, 256);
+        (*this)[AxisesNames::Vy] = clamp(Vy, -256, 256);
+        (*this)[AxisesNames::Vz] = clamp(Vz, -256, 256);
+        (*this)[AxisesNames::Wx] = clamp(Wx, -256, 256);
+        (*this)[AxisesNames::Wy] = clamp(Wy, -256, 256);
+        (*this)[AxisesNames::Wz] = clamp(Wz, -256, 256);
+    }
+
+    int getAxis(AxisesNames axis) const
+    {
+        return axises[static_cast<int>(axis)];
+    }
+
+    int getAxis(int axis) const
+    {
+        return axises[axis];
+    }
+};
+
 PS2X ps2x;
 
 uint8_t mac[6] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED };
@@ -54,35 +119,24 @@ void setup()
 
 void loop()
 {
-    
-    /*  if(ps2x.Button(PSB_L3))
-        Serial.println("L3 pressed");
-      if(ps2x.Button(PSB_R3))
-        Serial.println("R3 pressed");
-      if(ps2x.Button(PSB_L2))
-        Serial.println("L2 pressed");
-      if(ps2x.Button(PSB_R2))
-        Serial.println("R2 pressed");
-      if(ps2x.Button(PSB_GREEN))
-        Serial.println("Triangle pressed");*/
-    
-    // will be TRUE if button was JUST pressed
-    if(ps2x.ButtonPressed(PSB_RED))
-    Serial.println("Circle just pressed");
-    
-    // will be TRUE if button was JUST released
-    if(ps2x.ButtonReleased(PSB_PINK))
-      Serial.println("Square just released");     
-    
-    // will be TRUE if button was JUST pressed OR released
-    if(ps2x.NewButtonState(PSB_BLUE))
-      Serial.println("X just changed");    
-    
+  message<64> txMsg;
+  message<64> rxMsg;
+  
+  Axises axises;
 
-    ps2x.Analog(PSS_LY);
-    ps2x.Analog(PSS_LX);
-    ps2x.Analog(PSS_RY);
-    ps2x.Analog(PSS_RX);
+  axises[AxisesNames::Vx] = map(ps2x.Analog(PSS_LY), 0, 255, 256, -256); // Вдоль Оси X
+  axises[AxisesNames::Wz] = map(ps2x.Analog(PSS_LX), 0, 255, -256, 256); // Поворот по Оси Z
+  axises[AxisesNames::Wy] = map(ps2x.Analog(PSS_RY), 0, 255, -256, 256); // Поворот по Оси Y
+  axises[AxisesNames::Wx] = map(ps2x.Analog(PSS_RX), 0, 255, -256, 256); // Повотор по Оси X
+
+  axises[AxisesNames::Vz] = ps2x.Button(PSB_PAD_UP) ? 256 : ps2x.Button(PSB_PAD_RIGHT) ? -256 : 0;
+  axises[AxisesNames::Vy] = ps2x.Button(PSB_PAD_RIGHT) ? 256 : ps2x.Button(PSB_PAD_LEFT) ? -256 : 0;
+
+  txMsg.push(axises);
+
+  transmitter.sendData(txMsg);
+  
+  transmitter.receiveData(&rxMsg);
 
   delay(50);
 }
