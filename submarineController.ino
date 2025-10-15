@@ -114,6 +114,10 @@ void setup()
     }
   }
 
+  if(transmitter.init(IPAddress(192, 168, 1, 3)) != 0)
+  {
+    DEBUG_ERROR("transmitter init failed")
+  }
 
 }
 
