@@ -4,76 +4,15 @@
 
 #include "PS2X_lib.h"
 
+#include "axis.h"
+
 #define PS2_DAT        13
 #define PS2_CMD        11
 #define PS2_SEL        10
 #define PS2_CLK        12
 
 
-enum class AxisesNames
-{
-    Vx = 0,
-    Vy = 1,
-    Vz = 2,
-    Wx = 3,
-    Wy = 4,
-    Wz = 5
-};
 
-class Axises
-{
-    int16_t axises[6];
-public:
-    Axises() : axises{0, 0, 0, 0, 0, 0} {}
-
-    Axises(const int16_t* axises)
-    {
-        for (char i = 0; i < 6; ++i)
-        {
-            this->axises[i] = clamp(axises[i], -256, 256);
-        }
-    }
-
-    int16_t& operator[](int index)
-    {
-        return axises[index];
-    }
-
-    int16_t& operator[](AxisesNames index)
-    {
-        return axises[static_cast<int>(index)];
-    }
-
-    int16_t operator[](AxisesNames index) const
-    {
-        return axises[static_cast<int>(index)];
-    }
-
-    int16_t operator[](int index) const
-    {
-        return axises[index];
-    }
-
-    Axises(int16_t Vx, int16_t Vy, int16_t Vz, int16_t Wx, int16_t Wy, int16_t Wz)
-    {
-        (*this)[AxisesNames::Vx] = clamp(Vx, -256, 256);
-        (*this)[AxisesNames::Vy] = clamp(Vy, -256, 256);
-        (*this)[AxisesNames::Vz] = clamp(Vz, -256, 256);
-        (*this)[AxisesNames::Wx] = clamp(Wx, -256, 256);
-        (*this)[AxisesNames::Wy] = clamp(Wy, -256, 256);
-        (*this)[AxisesNames::Wz] = clamp(Wz, -256, 256);
-    }
-
-    int getAxis(AxisesNames axis) const
-    {
-        return axises[static_cast<int>(axis)];
-    }
-
-    int getAxis(int axis) const
-    {
-        return axises[axis];
-    }
-};
 
 PS2X ps2x;
 
@@ -116,7 +55,7 @@ void setup()
 
   if(transmitter.init(IPAddress(192, 168, 1, 3)) != 0)
   {
-    DEBUG_ERROR("transmitter init failed")
+    DEBUG_ERROR("transmitter init failed");
   }
 
 }
