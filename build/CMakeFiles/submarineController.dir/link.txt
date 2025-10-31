@@ -1,1 +1,0 @@
-/usr/bin/c++ -g CMakeFiles/submarineController.dir/src/main.cpp.o -o submarineController  /usr/local/lib/libudp_library.a /usr/lib/x86_64-linux-gnu/libSDL2.so 

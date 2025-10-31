@@ -1,8 +1,0 @@
-[
-{
-  "directory": "/home/iliangood/code/mcu/arduino/submarineController/build",
-  "command": "/usr/bin/c++  -isystem /usr/include/SDL2 -g -std=gnu++20 -o CMakeFiles/submarineController.dir/src/main.cpp.o -c /home/iliangood/code/mcu/arduino/submarineController/src/main.cpp",
-  "file": "/home/iliangood/code/mcu/arduino/submarineController/src/main.cpp",
-  "output": "CMakeFiles/submarineController.dir/src/main.cpp.o"
-}
-]
