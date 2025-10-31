@@ -1,0 +1,3 @@
+/home/iliangood/code/mcu/arduino/submarineController/build/CMakeFiles/submarineController.dir
+/home/iliangood/code/mcu/arduino/submarineController/build/CMakeFiles/edit_cache.dir
+/home/iliangood/code/mcu/arduino/submarineController/build/CMakeFiles/rebuild_cache.dir
