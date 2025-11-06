@@ -9,9 +9,14 @@ find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2)
 
 find_package(SDL2 REQUIRED)
 
+include_directories(include)
+
+add_library(controller STATIC src/controller.cpp)
+
 add_executable(submarineController src/main.cpp)
 
-target_link_libraries(submarineController PUBLIC EasyUDPLibrary::udp_library SDL2::SDL2 )
+target_link_libraries(controller PUBLIC SDL2::SDL2)
+target_link_libraries(submarineController PUBLIC EasyUDPLibrary::udp_library SDL2::SDL2 controller)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${SDL2_INCLUDE_DIRS}

@@ -9,6 +9,11 @@ int main() {
 		std::cerr << "SDL init failed: " << SDL_GetError();
 		return 0;
 	}
+	if(SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt") < 0)
+	{
+		std::cerr << "SDL add mapping failed: " << SDL_GetError();
+		return 0;
+	}
 	
 	
     return 0;
