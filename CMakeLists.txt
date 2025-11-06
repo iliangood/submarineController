@@ -11,11 +11,13 @@ find_package(SDL2 REQUIRED)
 
 include_directories(include)
 
+add_library(axis STATIC src/axis.cpp)
+
 add_library(controller STATIC src/controller.cpp)
 
 add_executable(submarineController src/main.cpp)
 
-target_link_libraries(controller PUBLIC SDL2::SDL2)
+target_link_libraries(controller PUBLIC SDL2::SDL2 axis)
 target_link_libraries(submarineController PUBLIC EasyUDPLibrary::udp_library SDL2::SDL2 controller)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
