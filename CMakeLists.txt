@@ -17,3 +17,11 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${SDL2_INCLUDE_DIRS}
     ${SDL2_TTF_INCLUDE_DIRS}
 )
+
+add_custom_command(
+    TARGET submarineController POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+            ${CMAKE_SOURCE_DIR}/extern/SDL_GameControllerDB/gamecontrollerdb.txt
+            $<TARGET_FILE_DIR:submarineController>/gamecontrollerdb.txt
+    COMMENT "Copying gamecontrollerdb.txt from submodule"
+)
