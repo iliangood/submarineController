@@ -1,0 +1,3 @@
+[submodule "extern/SDL_GameControllerDB"]
+	path = extern/SDL_GameControllerDB
+	url = https://github.com/gabomdq/SDL_GameControllerDB.git
