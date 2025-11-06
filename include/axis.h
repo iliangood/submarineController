@@ -15,7 +15,7 @@ enum class AxisesNames
 
 class Axises
 {
-    int16_t axises[6];
+    int16_t axises_[6];
 public:
     Axises();
 
@@ -31,9 +31,11 @@ public:
 
     Axises(int16_t Vx, int16_t Vy, int16_t Vz, int16_t Wx, int16_t Wy, int16_t Wz);
 
-    int getAxis(AxisesNames axis) const;
+    int16_t getAxis(AxisesNames axis) const;
+	int16_t axis(AxisesNames axis) const;
 
-    int getAxis(int axis) const;
+    int16_t getAxis(int axis) const;
+	int16_t axis(int axis) const;
 };
 
 #endif

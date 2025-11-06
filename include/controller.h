@@ -3,14 +3,11 @@
 
 #include <inttypes.h>
 
+#include "axis.h"
+
 class Controller
 {
-	int16_t Vx_;
-	int16_t Vy_;
-	int16_t Vz_;
-	int16_t Wx_;
-	int16_t Wy_;
-	int16_t Wz_;
+	Axises axises_;
 public:
 	Controller();
 
