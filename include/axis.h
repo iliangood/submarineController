@@ -2,6 +2,7 @@
 #define AXIS_H
 
 #include <inttypes.h>
+#include <array>
 
 enum class AxisesNames
 {
@@ -20,6 +21,8 @@ public:
     Axises();
 
     Axises(const int16_t* axises);
+
+    Axises(std::array<int16_t, 6> axises);
 
     int16_t& operator[](int index);
 
