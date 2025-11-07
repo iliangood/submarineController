@@ -29,7 +29,9 @@ Controller::Controller() : deadzone_(2000)
 		SDL_GameController* controller = SDL_GameControllerOpen(i);
 		if(controller != nullptr)
 		{
-			joysticks_.emplace_back(controller);
+			SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+			SDL_JoystickID instance_id = SDL_JoystickInstanceID(joystick);
+			joysticks_.insert({instance_id, controller});
 		}
 	}
 	SDL_GameControllerEventState(SDL_ENABLE);
@@ -58,12 +60,40 @@ void Controller::handleEventAxis(SDL_ControllerAxisEvent* event)
 	int16_t value = event->value;
 	if(abs(value) < deadzone_)
 		value = 0;
-	
-	if (event->axis == SDL_CONTROLLER_AXIS_LEFTX)
+	std::unordered_map<uint32_t, Joystick>::iterator jit = joysticks_.find(event->which);
+	if(jit == joysticks_.end())
+		return;
+	Joystick& joystick = jit->second;
+	if (event->axis == SDL_CONTROLLER_AXIS_LEFTX) // стрейф вправо/влево
 	{
-		axises
+		joystick.axises()[AxisesNames::Vy] = value;
+		return;
 	}
-	
+	if (event->axis == SDL_CONTROLLER_AXIS_LEFTY)
+	{
+		joystick.axises()[AxisesNames::] = -value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_RIGHTX) // поворот вправо влево
+	{
+		joystick.axises()[AxisesNames::Wx] = value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_RIGHTY) // поворот нос вверх вниз
+	{
+		joystick.axises()[AxisesNames::Wy] = value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) // вперед назад
+	{
+		joystick.axises()[AxisesNames::Vx] = joystick.rTrigger() ? -value : value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT) // вверх вниз
+	{
+		joystick.axises()[AxisesNames::Vz] = joystick.lTrigger() ? -value : value;
+		return;
+	}
 }
 void Controller::handleEventButton(SDL_ControllerButtonEvent* event)
 {

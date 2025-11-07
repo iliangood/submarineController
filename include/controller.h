@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <vector>
+#include <unordered_map>
 
 #include <SDL2/SDL.h>
 
@@ -15,6 +16,16 @@ class Joystick
 	bool rTrigger_;
 public:
 	Joystick(SDL_GameController* joystick) : joystick_(joystick), lTrigger_(false), rTrigger_(false) {}
+	Joystick(const Joystick& other) : joystick_(other.joystick_), lTrigger_(other.lTrigger_), rTrigger_(other.rTrigger_)
+	{}
+	Joystick& operator=(const Joystick& other)
+	{
+		joystick_ = other.joystick_;
+		axises_ = other.axises_;
+		lTrigger_ = other.lTrigger_;
+		rTrigger_ = other.rTrigger_;
+		return *this;
+	}
 	SDL_GameController*& joystick()
 	{
 		return joystick_;
@@ -37,7 +48,7 @@ public:
 class Controller
 {
 	Axises mainAxises_;
-	std::vector<Joystick> joysticks_;
+	std::unordered_map<uint32_t, Joystick> joysticks_;
 	int deadzone_;
 
 	Controller();
