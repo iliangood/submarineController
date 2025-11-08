@@ -69,14 +69,14 @@ void Controller::handleEventAxis(SDL_ControllerAxisEvent* event)
 		joystick.axises()[AxisesNames::Vy] = value;
 		return;
 	}
-	if (event->axis == SDL_CONTROLLER_AXIS_LEFTY)
+	if (event->axis == SDL_CONTROLLER_AXIS_LEFTY) // вперед назад
 	{
-		joystick.axises()[AxisesNames::] = -value;
+		joystick.axises()[AxisesNames::Vx] = -value;
 		return;
 	}
 	if (event->axis == SDL_CONTROLLER_AXIS_RIGHTX) // поворот вправо влево
 	{
-		joystick.axises()[AxisesNames::Wx] = value;
+		joystick.axises()[AxisesNames::Wz] = value;
 		return;
 	}
 	if (event->axis == SDL_CONTROLLER_AXIS_RIGHTY) // поворот нос вверх вниз
@@ -86,16 +86,38 @@ void Controller::handleEventAxis(SDL_ControllerAxisEvent* event)
 	}
 	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) // вперед назад
 	{
-		joystick.axises()[AxisesNames::Vx] = joystick.rTrigger() ? -value : value;
+		if(joystick.axises()[AxisesNames::Vz] > 0 && abs(value) < abs(joystick.axises()[AxisesNames::Vz]))
+			return;
+		joystick.axises()[AxisesNames::Vz] = -value;
 		return;
 	}
 	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT) // вверх вниз
 	{
-		joystick.axises()[AxisesNames::Vz] = joystick.lTrigger() ? -value : value;
+		if(joystick.axises()[AxisesNames::Vz] < 0 && abs(value) < abs(joystick.axises()[AxisesNames::Vz]))
+			return;
+		joystick.axises()[AxisesNames::Vz] = value;
 		return;
 	}
 }
 void Controller::handleEventButton(SDL_ControllerButtonEvent* event)
 {
-
+	bool state = event->button;
+	std::unordered_map<uint32_t, Joystick>::iterator jit = joysticks_.find(event->which);
+	if(jit == joysticks_.end())
+		return;
+	Joystick& joystick = jit->second;
+	if(event->button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+	{
+		if(joystick.axises()[AxisesNames::Wx] < 0 && !state)
+			return;
+		joystick.axises()[AxisesNames::Wx] = state ? INT32_MAX : 0;
+		return;
+	}
+	if(event->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
+	{
+		if(joystick.axises()[AxisesNames::Wx] > 0 && !state)
+			return;
+		joystick.axises()[AxisesNames::Wx] = state ? -INT32_MAX : 0;
+		return;
+	}
 }
