@@ -4,6 +4,8 @@ project(submarineController)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+add_compile_options(-Wall -Wextra -pedantic)
+
 find_package(EasyUDPLibrary CONFIG REQUIRED)
 find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2)
 

@@ -5,7 +5,7 @@ Axises::Axises() : axises_{0, 0, 0, 0, 0, 0} {}
 
 Axises::Axises(const int16_t* axises)
 {
-    for (char i = 0; i < 6; ++i)
+    for (int i = 0; i < 6; ++i)
     {
         this->axises_[i] = axises[i];
     }
@@ -13,7 +13,7 @@ Axises::Axises(const int16_t* axises)
 
 Axises::Axises(std::array<int16_t, 6> axises)
 {
-    for (char i = 0; i < 6; ++i)
+    for (int i = 0; i < 6; ++i)
     {
         this->axises_[i] = axises[i];
     }
@@ -66,5 +66,5 @@ int16_t Axises::getAxis(int axis) const
 
 int16_t Axises::axis(int axis) const
 {
-    return axises_[static_cast<int>(axis)];
+    return axises_[axis];
 }

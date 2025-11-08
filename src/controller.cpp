@@ -1,8 +1,80 @@
 #include "controller.h"
 
 #include <iostream>
+#include <algorithm>
 
 #include <SDL2/SDL.h>
+
+
+void Joystick::handleEventAxis(SDL_ControllerAxisEvent* event, int16_t deadzone)
+{
+	int16_t value = event->value;
+	if(abs(value) < deadzone)
+		value = 0;
+	if (event->axis == SDL_CONTROLLER_AXIS_LEFTX) // стрейф вправо/влево
+	{
+		joystickState_.leftStickX = value;
+		axises_[AxisesNames::Vy] = value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_LEFTY) // вперед назад
+	{
+		joystickState_.leftStickY = value;
+		axises_[AxisesNames::Vx] = -value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_RIGHTX) // поворот вправо влево
+	{
+		joystickState_.rightStickX = value;
+		axises_[AxisesNames::Wz] = value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_RIGHTY) // поворот нос вверх вниз
+	{
+		joystickState_.rightStickY = value;
+		axises_[AxisesNames::Wy] = value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) // вперед назад
+	{
+		joystickState_.rightTrigger = value;
+		if(joystickState_.rightTrigger < joystickState_.leftTrigger)
+			return;
+		axises_[AxisesNames::Vz] = -value;
+		return;
+	}
+	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT) // вверх вниз
+	{
+		joystickState_.leftTrigger = value;
+		if(joystickState_.leftTrigger < joystickState_.rightTrigger)
+			return;
+		axises_[AxisesNames::Vz] = value;
+		return;
+	}
+}
+
+void Joystick::handleEventButton(SDL_ControllerButtonEvent* event, int16_t rollSpeed)
+{
+	bool state = event->state == SDL_PRESSED;
+
+	if(event->button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
+	{
+		joystickState_.rightShoulder = state;
+		if(joystickState_.leftShoulder && !state)
+			return;
+		axises_[AxisesNames::Wx] = state ? rollSpeed : 0;
+		return;
+	}
+	if(event->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
+	{
+		joystickState_.leftShoulder = state;
+		if(joystickState_.rightShoulder && !state)
+			return;
+		axises_[AxisesNames::Wx] = state ? -rollSpeed : 0;
+		return;
+	}
+}
+
 
 
 Controller::Controller() : deadzone_(2000)
@@ -10,17 +82,20 @@ Controller::Controller() : deadzone_(2000)
 	if(SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0)
 	{
 		std::cerr << "SDL init failed: " << SDL_GetError();
+		throw std::runtime_error("SDL init failed");
 		return;
 	}
 	if(SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt") < 0)
 	{
 		std::cerr << "SDL add mapping failed: " << SDL_GetError();
+		throw std::runtime_error("SDL add mapping failed");
 		return;
 	}
 	int numJoysticks = SDL_NumJoysticks();
 	if(numJoysticks < 0)
 	{
 		std::cerr << "num joystics failed: " << SDL_GetError();
+		throw std::runtime_error("num joystics failed");
 		return;
 	}
 	joysticks_.reserve(numJoysticks);
@@ -34,8 +109,46 @@ Controller::Controller() : deadzone_(2000)
 			joysticks_.insert({instance_id, controller});
 		}
 	}
+	rollSpeed_ = INT16_MAX;
+	axisesUpdated_ = false;
 	SDL_GameControllerEventState(SDL_ENABLE);
+	SDL_AddEventWatch(watcherEventAxis, nullptr);
+	SDL_AddEventWatch(watcherEventButton, nullptr);
+}
 
+Controller::~Controller()
+{
+	for(std::pair<uint32_t, Joystick> joystick : joysticks_)
+	{
+		if(joystick.second.joystick() != nullptr)
+		{
+			SDL_GameControllerClose(joystick.second.joystick());
+			joystick.second.joystick() = nullptr;
+		}
+	}
+	joysticks_.clear();
+	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
+}
+
+void Controller::updateAxises()
+{
+	std::lock_guard lock(axisMutex_);
+	if(axisesUpdated_)
+		return;
+	mainAxises_ = Axises();
+	for(std::pair<uint32_t, Joystick> joystick : joysticks_)
+	{
+		for(int i = 0; i < 6; ++i)
+		{
+			mainAxises_[i] = static_cast<int16_t>(
+				std::clamp(
+					static_cast<int32_t>(joystick.second.axises()[i])
+					 + static_cast<int32_t>(mainAxises_[i]),
+					static_cast<int32_t>(INT16_MIN),
+					static_cast<int32_t>(INT16_MAX)));
+		}
+	}
+	axisesUpdated_ = true;
 }
 
 int Controller::watcherEventAxis(void*, SDL_Event* event)
@@ -55,69 +168,41 @@ int Controller::watcherEventButton(void*, SDL_Event* event)
 	return 0;
 }
 
+int Controller::watcherEventDevicesUpdate(void*, SDL_Event* event)
+{
+	if(event->type != SDL_CONTROLLERDEVICEADDED && event->type != SDL_CONTROLLERDEVICEREMOVED)
+		return 0;
+	Controller& crt = getInstance();
+	crt.handleEventDevicesUpdate(event->cdevice);
+}
+
 void Controller::handleEventAxis(SDL_ControllerAxisEvent* event)
 {
-	int16_t value = event->value;
-	if(abs(value) < deadzone_)
-		value = 0;
+	std::lock_guard lock(axisMutex_);
+	SDL_JoystickI
 	std::unordered_map<uint32_t, Joystick>::iterator jit = joysticks_.find(event->which);
 	if(jit == joysticks_.end())
 		return;
+	axisesUpdated_ = false;
 	Joystick& joystick = jit->second;
-	if (event->axis == SDL_CONTROLLER_AXIS_LEFTX) // стрейф вправо/влево
-	{
-		joystick.axises()[AxisesNames::Vy] = value;
-		return;
-	}
-	if (event->axis == SDL_CONTROLLER_AXIS_LEFTY) // вперед назад
-	{
-		joystick.axises()[AxisesNames::Vx] = -value;
-		return;
-	}
-	if (event->axis == SDL_CONTROLLER_AXIS_RIGHTX) // поворот вправо влево
-	{
-		joystick.axises()[AxisesNames::Wz] = value;
-		return;
-	}
-	if (event->axis == SDL_CONTROLLER_AXIS_RIGHTY) // поворот нос вверх вниз
-	{
-		joystick.axises()[AxisesNames::Wy] = value;
-		return;
-	}
-	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) // вперед назад
-	{
-		if(joystick.axises()[AxisesNames::Vz] > 0 && abs(value) < abs(joystick.axises()[AxisesNames::Vz]))
-			return;
-		joystick.axises()[AxisesNames::Vz] = -value;
-		return;
-	}
-	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT) // вверх вниз
-	{
-		if(joystick.axises()[AxisesNames::Vz] < 0 && abs(value) < abs(joystick.axises()[AxisesNames::Vz]))
-			return;
-		joystick.axises()[AxisesNames::Vz] = value;
-		return;
-	}
+	joystick.handleEventAxis(event, deadzone_);
 }
 void Controller::handleEventButton(SDL_ControllerButtonEvent* event)
 {
-	bool state = event->button;
+	std::lock_guard lock(buttonMutex_);
 	std::unordered_map<uint32_t, Joystick>::iterator jit = joysticks_.find(event->which);
 	if(jit == joysticks_.end())
 		return;
+	axisesUpdated_ = false;
 	Joystick& joystick = jit->second;
-	if(event->button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
-	{
-		if(joystick.axises()[AxisesNames::Wx] < 0 && !state)
-			return;
-		joystick.axises()[AxisesNames::Wx] = state ? INT32_MAX : 0;
-		return;
-	}
-	if(event->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
-	{
-		if(joystick.axises()[AxisesNames::Wx] > 0 && !state)
-			return;
-		joystick.axises()[AxisesNames::Wx] = state ? -INT32_MAX : 0;
-		return;
-	}
+	joystick.handleEventButton(event, rollSpeed_);
+}
+
+void Controller::setRollSpeed(int32_t speed)
+{
+	rollSpeed_ = speed;
+}
+int32_t Controller::getRollSpeed()
+{
+	return rollSpeed_;
 }
