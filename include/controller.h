@@ -33,6 +33,7 @@ class Joystick
 public:
 	Joystick(SDL_GameController* joystick) : joystick_(joystick) {}
 	Joystick(const Joystick& other) : joystick_(other.joystick_), axises_(other.axises_), joystickState_(other.joystickState_) {}
+	~Joystick() {}
 	Joystick& operator=(const Joystick& other)
 	{
 		joystick_ = other.joystick_;
@@ -62,13 +63,14 @@ public:
 class Controller
 {
 	Axises mainAxises_;
-	std::unordered_map<uint32_t, Joystick> joysticks_;
+	std::unordered_map<int32_t, Joystick> joysticks_;
 	int16_t deadzone_;
 
 	int16_t rollSpeed_;
 
 	std::mutex axisMutex_;
 	std::mutex buttonMutex_;
+	std::mutex getMutex_;
 
 	Controller();
 	Controller(const Controller&) = delete;
@@ -96,6 +98,7 @@ public:
 	
 	const Axises& axises()
 	{
+		std::lock_guard lock(getMutex_);
 		updateAxises();
 		return mainAxises_;
 	}

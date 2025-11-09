@@ -38,17 +38,13 @@ void Joystick::handleEventAxis(SDL_ControllerAxisEvent* event, int16_t deadzone)
 	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERRIGHT) // вперед назад
 	{
 		joystickState_.rightTrigger = value;
-		if(joystickState_.rightTrigger < joystickState_.leftTrigger)
-			return;
-		axises_[AxisesNames::Vz] = -value;
+		axises_[AxisesNames::Vz] = joystickState_.leftTrigger - joystickState_.rightTrigger;
 		return;
 	}
 	if (event->axis == SDL_CONTROLLER_AXIS_TRIGGERLEFT) // вверх вниз
 	{
 		joystickState_.leftTrigger = value;
-		if(joystickState_.leftTrigger < joystickState_.rightTrigger)
-			return;
-		axises_[AxisesNames::Vz] = value;
+		axises_[AxisesNames::Vz] = joystickState_.leftTrigger - joystickState_.rightTrigger;
 		return;
 	}
 }
@@ -60,17 +56,13 @@ void Joystick::handleEventButton(SDL_ControllerButtonEvent* event, int16_t rollS
 	if(event->button == SDL_CONTROLLER_BUTTON_RIGHTSHOULDER)
 	{
 		joystickState_.rightShoulder = state;
-		if(joystickState_.leftShoulder && !state)
-			return;
-		axises_[AxisesNames::Wx] = state ? rollSpeed : 0;
+		axises_[AxisesNames::Wx] = (joystickState_.rightShoulder - joystickState_.leftShoulder) * rollSpeed;
 		return;
 	}
 	if(event->button == SDL_CONTROLLER_BUTTON_LEFTSHOULDER)
 	{
 		joystickState_.leftShoulder = state;
-		if(joystickState_.rightShoulder && !state)
-			return;
-		axises_[AxisesNames::Wx] = state ? -rollSpeed : 0;
+		axises_[AxisesNames::Wx] = (joystickState_.rightShoulder - joystickState_.leftShoulder) * rollSpeed;
 		return;
 	}
 }
@@ -173,29 +165,69 @@ int Controller::watcherEventDevicesUpdate(void*, SDL_Event* event)
 	if(event->type != SDL_CONTROLLERDEVICEADDED && event->type != SDL_CONTROLLERDEVICEREMOVED)
 		return 0;
 	Controller& crt = getInstance();
-	crt.handleEventDevicesUpdate(event->cdevice);
+	crt.handleEventDevicesUpdate(&event->cdevice);
+	return 0;
 }
 
 void Controller::handleEventAxis(SDL_ControllerAxisEvent* event)
 {
 	std::lock_guard lock(axisMutex_);
-	SDL_JoystickI
-	std::unordered_map<uint32_t, Joystick>::iterator jit = joysticks_.find(event->which);
+	SDL_JoystickID instance_id = event->which;
+	if(instance_id < 0)
+		return;		
+	
+	std::unordered_map<int32_t, Joystick>::iterator jit = joysticks_.find(instance_id);
 	if(jit == joysticks_.end())
 		return;
 	axisesUpdated_ = false;
-	Joystick& joystick = jit->second;
-	joystick.handleEventAxis(event, deadzone_);
+	jit->second.handleEventAxis(event, deadzone_);
 }
 void Controller::handleEventButton(SDL_ControllerButtonEvent* event)
 {
 	std::lock_guard lock(buttonMutex_);
-	std::unordered_map<uint32_t, Joystick>::iterator jit = joysticks_.find(event->which);
+	SDL_JoystickID instance_id = event->which;
+	if(instance_id < 0)
+		return;
+	
+	std::unordered_map<int32_t, Joystick>::iterator jit = joysticks_.find(instance_id);
 	if(jit == joysticks_.end())
 		return;
 	axisesUpdated_ = false;
-	Joystick& joystick = jit->second;
-	joystick.handleEventButton(event, rollSpeed_);
+	jit->second.handleEventButton(event, rollSpeed_);
+}
+
+void Controller::handleEventDevicesUpdate(SDL_ControllerDeviceEvent* event)
+{	
+	if(event->type == SDL_CONTROLLERDEVICEADDED)
+	{
+		int32_t device_index = event->which;
+		SDL_GameController* controller = SDL_GameControllerOpen(device_index);
+		SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
+		SDL_JoystickID instance_id = SDL_JoystickInstanceID(joystick);
+		if(instance_id < 0)
+		{
+			std::cerr << "Controller::handleEventDevicesUpdate: SDL_CONTROLLERDEVICEADDED: incorrect instance_id" << std::endl;
+			return;
+		}
+		joysticks_.insert({instance_id, controller});
+		return;
+	}
+	if(event->type != SDL_CONTROLLERDEVICEREMOVED)
+	{
+		SDL_JoystickID instance_id = event->which;
+		if(instance_id < 0)
+		{
+			std::cerr << "Controller::handleEventDevicesUpdate: SDL_CONTROLLERDEVICEREMOVED: incorrect instance_id" << std::endl;
+			return;
+		}
+		joysticks_.erase(instance_id);
+		return;
+	}
+	if(event->type != SDL_CONTROLLERDEVICEREMAPPED)
+	{
+		axisesUpdated_ = false;
+		return;
+	}
 }
 
 void Controller::setRollSpeed(int32_t speed)

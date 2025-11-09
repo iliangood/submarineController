@@ -24,21 +24,21 @@ public:
 
     Axises(std::array<int16_t, 6> axises);
 
-    int16_t& operator[](int index);
+    int16_t& operator[](std::size_t index);
 
     int16_t& operator[](AxisesNames index);
 
     int16_t operator[](AxisesNames index) const;
 
-    int16_t operator[](int index) const;
+    int16_t operator[](std::size_t index) const;
 
     Axises(int16_t Vx, int16_t Vy, int16_t Vz, int16_t Wx, int16_t Wy, int16_t Wz);
 
     int16_t getAxis(AxisesNames axis) const;
 	int16_t axis(AxisesNames axis) const;
 
-    int16_t getAxis(int axis) const;
-	int16_t axis(int axis) const;
+    int16_t getAxis(std::size_t axis) const;
+	int16_t axis(std::size_t axis) const;
 };
 
 #endif
