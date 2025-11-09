@@ -3,7 +3,7 @@
 
 #include <inttypes.h>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <mutex>
 
 #include <SDL2/SDL.h>
@@ -66,7 +66,7 @@ class Controller
 
 
 	Axises mainAxises_;
-	std::unordered_map<int32_t, Joystick> joysticks_;
+	std::map<int32_t, Joystick> joysticks_;
 	int16_t deadzone_;
 
 	int16_t rollSpeed_;

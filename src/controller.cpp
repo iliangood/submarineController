@@ -90,7 +90,6 @@ Controller::Controller() : deadzone_(2000)
 		throw std::runtime_error("num joystics failed");
 		return;
 	}
-	joysticks_.reserve(numJoysticks);
 	for(int i = 0; i < numJoysticks; ++i)
 	{
 		SDL_GameController* controller = SDL_GameControllerOpen(i);
@@ -99,6 +98,10 @@ Controller::Controller() : deadzone_(2000)
 			SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
 			SDL_JoystickID instance_id = SDL_JoystickInstanceID(joystick);
 			joysticks_.insert({instance_id, controller});
+		}
+		else
+		{
+			std::cerr << "SDL_GameControllerOpen failed" << std::endl;
 		}
 	}
 	rollSpeed_ = INT16_MAX;
@@ -111,7 +114,7 @@ Controller::Controller() : deadzone_(2000)
 
 Controller::~Controller()
 {
-	for(std::pair<uint32_t, Joystick> joystick : joysticks_)
+	for(std::pair<int32_t, Joystick> joystick : joysticks_)
 	{
 		if(joystick.second.joystick() != nullptr)
 		{
@@ -120,6 +123,9 @@ Controller::~Controller()
 		}
 	}
 	joysticks_.clear();
+	SDL_DelEventWatch(watcherEventAxis, nullptr);
+	SDL_DelEventWatch(watcherEventButton, nullptr);
+	SDL_DelEventWatch(watcherEventDevicesUpdate, nullptr);
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 }
 
@@ -129,7 +135,7 @@ void Controller::updateAxises()
 	if(axisesUpdated_)
 		return;
 	mainAxises_ = Axises();
-	for(std::pair<uint32_t, Joystick> joystick : joysticks_)
+	for(std::pair<int32_t, Joystick> joystick : joysticks_)
 	{
 		for(int i = 0; i < 6; ++i)
 		{
@@ -177,7 +183,7 @@ void Controller::handleEventAxis(SDL_ControllerAxisEvent* event)
 	if(instance_id < 0)
 		return;		
 	
-	std::unordered_map<int32_t, Joystick>::iterator jit = joysticks_.find(instance_id);
+	std::map<int32_t, Joystick>::iterator jit = joysticks_.find(instance_id);
 	if(jit == joysticks_.end())
 		return;
 	axisesUpdated_ = false;
@@ -190,7 +196,7 @@ void Controller::handleEventButton(SDL_ControllerButtonEvent* event)
 	if(instance_id < 0)
 		return;
 	
-	std::unordered_map<int32_t, Joystick>::iterator jit = joysticks_.find(instance_id);
+	std::map<int32_t, Joystick>::iterator jit = joysticks_.find(instance_id);
 	if(jit == joysticks_.end())
 		return;
 	axisesUpdated_ = false;
