@@ -6,7 +6,7 @@
 #include <SDL2/SDL.h>
 
 
-void Joystick::handleEventAxis(SDL_ControllerAxisEvent* event, int16_t deadzone)
+void Controller::Joystick::handleEventAxis(SDL_ControllerAxisEvent* event, int16_t deadzone)
 {
 	int16_t value = event->value;
 	if(abs(value) < deadzone)
@@ -49,7 +49,7 @@ void Joystick::handleEventAxis(SDL_ControllerAxisEvent* event, int16_t deadzone)
 	}
 }
 
-void Joystick::handleEventButton(SDL_ControllerButtonEvent* event, int16_t rollSpeed)
+void Controller::Joystick::handleEventButton(SDL_ControllerButtonEvent* event, int16_t rollSpeed)
 {
 	bool state = event->state == SDL_PRESSED;
 
@@ -106,6 +106,7 @@ Controller::Controller() : deadzone_(2000)
 	SDL_GameControllerEventState(SDL_ENABLE);
 	SDL_AddEventWatch(watcherEventAxis, nullptr);
 	SDL_AddEventWatch(watcherEventButton, nullptr);
+	SDL_AddEventWatch(watcherEventDevicesUpdate, nullptr);
 }
 
 Controller::~Controller()
@@ -124,7 +125,7 @@ Controller::~Controller()
 
 void Controller::updateAxises()
 {
-	std::lock_guard lock(axisMutex_);
+	std::lock_guard lock(mutex_);
 	if(axisesUpdated_)
 		return;
 	mainAxises_ = Axises();
@@ -162,7 +163,7 @@ int Controller::watcherEventButton(void*, SDL_Event* event)
 
 int Controller::watcherEventDevicesUpdate(void*, SDL_Event* event)
 {
-	if(event->type != SDL_CONTROLLERDEVICEADDED && event->type != SDL_CONTROLLERDEVICEREMOVED)
+	if(event->type != SDL_CONTROLLERDEVICEADDED && event->type != SDL_CONTROLLERDEVICEREMOVED && event->type != SDL_CONTROLLERDEVICEREMAPPED)
 		return 0;
 	Controller& crt = getInstance();
 	crt.handleEventDevicesUpdate(&event->cdevice);
@@ -171,7 +172,7 @@ int Controller::watcherEventDevicesUpdate(void*, SDL_Event* event)
 
 void Controller::handleEventAxis(SDL_ControllerAxisEvent* event)
 {
-	std::lock_guard lock(axisMutex_);
+	std::lock_guard lock(mutex_);
 	SDL_JoystickID instance_id = event->which;
 	if(instance_id < 0)
 		return;		
@@ -184,7 +185,7 @@ void Controller::handleEventAxis(SDL_ControllerAxisEvent* event)
 }
 void Controller::handleEventButton(SDL_ControllerButtonEvent* event)
 {
-	std::lock_guard lock(buttonMutex_);
+	std::lock_guard lock(mutex_);
 	SDL_JoystickID instance_id = event->which;
 	if(instance_id < 0)
 		return;
@@ -212,7 +213,7 @@ void Controller::handleEventDevicesUpdate(SDL_ControllerDeviceEvent* event)
 		joysticks_.insert({instance_id, controller});
 		return;
 	}
-	if(event->type != SDL_CONTROLLERDEVICEREMOVED)
+	if(event->type == SDL_CONTROLLERDEVICEREMOVED)
 	{
 		SDL_JoystickID instance_id = event->which;
 		if(instance_id < 0)
@@ -223,18 +224,18 @@ void Controller::handleEventDevicesUpdate(SDL_ControllerDeviceEvent* event)
 		joysticks_.erase(instance_id);
 		return;
 	}
-	if(event->type != SDL_CONTROLLERDEVICEREMAPPED)
+	if(event->type == SDL_CONTROLLERDEVICEREMAPPED)
 	{
 		axisesUpdated_ = false;
 		return;
 	}
 }
 
-void Controller::setRollSpeed(int32_t speed)
+void Controller::setRollSpeed(int16_t speed)
 {
 	rollSpeed_ = speed;
 }
-int32_t Controller::getRollSpeed()
+int16_t Controller::getRollSpeed()
 {
 	return rollSpeed_;
 }
