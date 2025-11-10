@@ -129,7 +129,7 @@ Controller::~Controller()
 	SDL_QuitSubSystem(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER);
 }
 
-void Controller::updateAxises()
+void Controller::updateAxises() const
 {
 	std::lock_guard lock(mutex_);
 	if(axisesUpdated_)

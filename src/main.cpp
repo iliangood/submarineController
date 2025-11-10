@@ -1,20 +1,32 @@
 #include <iostream>
+#include <chrono>
+
 #include <SDL2/SDL.h>
 #include <udptransmitter.h>
 
+#include "controller.h"
 
-int main() {
-    if(SDL_Init(SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER) < 0)
+int main()
+{
+    Controller::getInstance();
+	UDPTransmitter transmitter(56728, "submarine");
+
+	Message<256> msg;
+	std::chrono::steady_clock::time_point lastSend = std::chrono::steady_clock::now();
+	while(true)
 	{
-		std::cerr << "SDL init failed: " << SDL_GetError();
-		return 0;
+		ReceiveInfo rci = transmitter.receiveData(&msg);
+		if(recieved(rci))
+		{
+			
+		}
+		msg.clear();
+		if(std::chrono::steady_clock::now() - lastSend > std::chrono::milliseconds(10))
+		{
+			msg.push<Packe
+		}
+		msg.clear();
 	}
-	if(SDL_GameControllerAddMappingsFromFile("gamecontrollerdb.txt") < 0)
-	{
-		std::cerr << "SDL add mapping failed: " << SDL_GetError();
-		return 0;
-	}
-	
 	
     return 0;
 }

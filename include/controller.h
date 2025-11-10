@@ -65,13 +65,14 @@ class Controller
 	};
 
 
-	Axises mainAxises_;
+	mutable Axises mainAxises_;
+	mutable bool axisesUpdated_;
 	std::map<int32_t, Joystick> joysticks_;
 	int16_t deadzone_;
 
 	int16_t rollSpeed_;
 
-	std::mutex mutex_;
+	mutable std::mutex mutex_;
 
 	Controller();
 	Controller(const Controller&) = delete;
@@ -86,8 +87,7 @@ class Controller
 	void handleEventButton(SDL_ControllerButtonEvent* event);
 	void handleEventDevicesUpdate(SDL_ControllerDeviceEvent* event);
 
-	bool axisesUpdated_;
-	void updateAxises();
+	void updateAxises() const;
 
 public:
 	static Controller& getInstance()
