@@ -6,6 +6,8 @@
 #include <map>
 #include <mutex>
 
+#include <spdlog/spdlog.h>
+
 #include <SDL2/SDL.h>
 
 #include "axis.h"
@@ -99,6 +101,7 @@ public:
 	
 	const Axises& axises()
 	{
+		SDL_PumpEvents();
 		updateAxises();
 		return mainAxises_;
 	}

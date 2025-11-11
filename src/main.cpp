@@ -1,7 +1,11 @@
 #include <iostream>
 #include <chrono>
+#include <thread>
 
 #include <SDL2/SDL.h>
+
+
+
 #include <udptransmitter.h>
 
 #include "controller.h"
@@ -11,6 +15,10 @@
 
 int main()
 {
+    debug_init();
+
+	spdlog::set_level(spdlog::level::debug);
+
     Controller::getInstance();
 	UDPTransmitter transmitter(56728, "submarine");
 
@@ -38,7 +46,10 @@ int main()
 				});
 		}
 		msg.clear();
-		std::cout << "ping:" << ping_ms << "ms\n";
+		const Axises& axises = Controller::getInstance().axises();
+		std::cout << axises[0] << ' ' << axises[1] << ' ' << axises[2] << ' ' << axises[3] << ' ' << axises[4] << ' ' << axises[5] << '\n';
+		std::cout << "ping:" << ping_ms << "ms" << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	}
 	
     return 0;

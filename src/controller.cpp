@@ -98,6 +98,7 @@ Controller::Controller() : deadzone_(2000)
 			SDL_Joystick* joystick = SDL_GameControllerGetJoystick(controller);
 			SDL_JoystickID instance_id = SDL_JoystickInstanceID(joystick);
 			joysticks_.insert({instance_id, controller});
+			spdlog::info("connected controller: {}", SDL_JoystickName(joystick));
 		}
 		else
 		{
@@ -110,6 +111,7 @@ Controller::Controller() : deadzone_(2000)
 	SDL_AddEventWatch(watcherEventAxis, nullptr);
 	SDL_AddEventWatch(watcherEventButton, nullptr);
 	SDL_AddEventWatch(watcherEventDevicesUpdate, nullptr);
+	std::cout << "added watchers" << std::endl;
 }
 
 Controller::~Controller()
@@ -194,11 +196,17 @@ void Controller::handleEventButton(SDL_ControllerButtonEvent* event)
 	std::lock_guard lock(mutex_);
 	SDL_JoystickID instance_id = event->which;
 	if(instance_id < 0)
+	{
+		spdlog::warn("Controller::handleEventButton(SDL_ControllerButtonEvent* event) incorrect instance id");
 		return;
+	}
 	
 	std::map<int32_t, Joystick>::iterator jit = joysticks_.find(instance_id);
 	if(jit == joysticks_.end())
+	{
+		spdlog::warn("Controller::handleEventButton(SDL_ControllerButtonEvent* event) controller not found");
 		return;
+	}
 	axisesUpdated_ = false;
 	jit->second.handleEventButton(event, rollSpeed_);
 }
@@ -213,9 +221,10 @@ void Controller::handleEventDevicesUpdate(SDL_ControllerDeviceEvent* event)
 		SDL_JoystickID instance_id = SDL_JoystickInstanceID(joystick);
 		if(instance_id < 0)
 		{
-			std::cerr << "Controller::handleEventDevicesUpdate: SDL_CONTROLLERDEVICEADDED: incorrect instance_id" << std::endl;
+			spdlog::error("Controller::handleEventDevicesUpdate: SDL_CONTROLLERDEVICEADDED: incorrect instance_id");
 			return;
 		}
+		spdlog::info("new controller connected:{}", SDL_JoystickName(joystick));
 		joysticks_.insert({instance_id, controller});
 		return;
 	}
@@ -224,9 +233,10 @@ void Controller::handleEventDevicesUpdate(SDL_ControllerDeviceEvent* event)
 		SDL_JoystickID instance_id = event->which;
 		if(instance_id < 0)
 		{
-			std::cerr << "Controller::handleEventDevicesUpdate: SDL_CONTROLLERDEVICEREMOVED: incorrect instance_id" << std::endl;
+			spdlog::error("Controller::handleEventDevicesUpdate: SDL_CONTROLLERDEVICEREMOVED: incorrect instance_id");
 			return;
 		}
+		spdlog::info("controller disconnected");
 		joysticks_.erase(instance_id);
 		return;
 	}

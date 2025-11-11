@@ -8,6 +8,7 @@ add_compile_options(-Wall -Wextra -pedantic)
 
 find_package(EasyUDPLibrary CONFIG REQUIRED)
 find_package(SDL2 REQUIRED CONFIG COMPONENTS SDL2)
+find_package(spdlog REQUIRED)
 
 find_package(SDL2 REQUIRED)
 
@@ -19,7 +20,7 @@ add_library(controller STATIC src/controller.cpp)
 
 add_executable(submarineController src/main.cpp)
 
-target_link_libraries(controller PUBLIC SDL2::SDL2 axis)
+target_link_libraries(controller PUBLIC SDL2::SDL2 axis spdlog::spdlog)
 target_link_libraries(submarineController PUBLIC EasyUDPLibrary::udp_library SDL2::SDL2 controller)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
