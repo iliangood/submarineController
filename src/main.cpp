@@ -41,7 +41,7 @@ int main()
 			spdlog::info("received packet from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
 		}
 		msg.clear();
-		if(std::chrono::steady_clock::now() - lastSend > std::chrono::milliseconds(10))
+		if(std::chrono::steady_clock::now() - lastSend > std::chrono::milliseconds(100))
 		{
 			msg.push(ControllerPacket
 				{
