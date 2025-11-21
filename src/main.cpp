@@ -31,12 +31,13 @@ int main()
 		ReceiveInfo rci = transmitter.receiveData(&msg);
 		if(recieved(rci))
 		{
+			std::cout << "Received packet from " << rci.remoteIP.value_or(IPAddress(0,0,0,0)) << " size=" << rci.dataSize << " bytes\n";
 			SubmarinePacket inPacket = msg.read<SubmarinePacket>();
 			last_packet_rx_time_message = inPacket.sendTime_ms;
 			ping_ms = millis() - inPacket.last_packet_rx_time_message;
 		}
 		msg.clear();
-		if(std::chrono::steady_clock::now() - lastSend > std::chrono::milliseconds(10))
+		if(std::chrono::steady_clock::now() - lastSend > std::chrono::milliseconds(100))
 		{
 			msg.push(ControllerPacket
 				{
@@ -44,12 +45,14 @@ int main()
 					last_packet_rx_time_message,
 					Controller::getInstance().axises()
 				});
+			transmitter.sendData(msg);
+			lastSend = std::chrono::steady_clock::now();
 		}
 		msg.clear();
 		const Axises& axises = Controller::getInstance().axises();
-		std::cout << axises[0] << ' ' << axises[1] << ' ' << axises[2] << ' ' << axises[3] << ' ' << axises[4] << ' ' << axises[5] << '\n';
-		std::cout << "ping:" << ping_ms << "ms" << std::endl;
-		std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		//std::cout << axises[0] << ' ' << axises[1] << ' ' << axises[2] << ' ' << axises[3] << ' ' << axises[4] << ' ' << axises[5] << '\n';
+		//std::cout << "ping:" << ping_ms << "ms" << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 	
     return 0;
