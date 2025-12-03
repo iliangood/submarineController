@@ -45,16 +45,18 @@ int main()
 		{
 			msg.push(ControllerPacket
 				{
-					static_cast<uint64_t>(millis()),
+					millis(),
 					last_packet_rx_time_message,
 					Controller::getInstance().axises()
 				}.serialize());
 			transmitter.sendData(msg);
+			std::cout << "time:" << millis() << '\n';
 		}
 		msg.clear();
 		const Axises& axises = Controller::getInstance().axises();
 		std::cout << axises[0] << ' ' << axises[1] << ' ' << axises[2] << ' ' << axises[3] << ' ' << axises[4] << ' ' << axises[5] << '\n';
 		std::cout << "ping:" << ping_ms << "ms" << std::endl;
+		std::cout << "target IP:" << transmitter.targetIP() << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 	
