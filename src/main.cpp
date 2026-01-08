@@ -26,19 +26,25 @@ int main()
 	std::chrono::steady_clock::time_point lastSend = std::chrono::steady_clock::now();
 	uint64_t last_packet_rx_time_message = 0;
 	uint64_t ping_ms = 0;
+	uint64_t counter = 0;
+	uint64_t lostPackets = 0;
+	uint64_t lastCount = 0;
 	while(true)
 	{
 		ReceiveInfo rci = transmitter.receiveData(&msg);
-		if(recieved(rci))
+		if(recieved(rci) && rci.dataSize > SubmarinePacket::serializedSize())
 		{
 			if(rci.dataSize != SubmarinePacket::serializedSize())
 			{
-				spdlog::warn("incorrect packet size from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
+				//spdlog::warn("incorrect packet size from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
 			}
 			SubmarinePacket inPacket = msg.read<SubmarinePacket>();
 			last_packet_rx_time_message = inPacket.sendTime_ms;
 			ping_ms = millis() - inPacket.last_packet_rx_time_message;
 			spdlog::info("received packet from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
+			uint64_t curCount = msg.read<uint64_t>();
+			spdlog::info("lost packets:{}", lostPackets += curCount - lastCount - 1);
+			lastCount = curCount;
 		}
 		msg.clear();
 		if(std::chrono::steady_clock::now() - lastSend > std::chrono::milliseconds(100))
@@ -49,8 +55,10 @@ int main()
 					last_packet_rx_time_message,
 					Controller::getInstance().axises()
 				}.serialize());
+			msg.push(counter);
+			++counter;
 			transmitter.sendData(msg);
-			std::cout << "time:" << millis() << '\n';
+			std::cout << "count:" << counter << '\n';
 		}
 		msg.clear();
 		const Axises& axises = Controller::getInstance().axises();
