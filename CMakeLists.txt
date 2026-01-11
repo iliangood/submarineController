@@ -18,10 +18,13 @@ add_library(axis STATIC src/axis.cpp)
 
 add_library(controller STATIC src/controller.cpp)
 
+add_library(attitudeIndicator STATIC src/attitudeIndicator.cpp)
+
 add_executable(submarineController src/main.cpp)
 
 target_link_libraries(controller PUBLIC SDL2::SDL2 axis spdlog::spdlog)
-target_link_libraries(submarineController PUBLIC EasyUDPLibrary::udp_library SDL2::SDL2 controller)
+target_link_libraries(attitudeIndicator PUBLIC SDL2::SDL2 axis spdlog::spdlog)
+target_link_libraries(submarineController PUBLIC EasyUDPLibrary::udp_library SDL2::SDL2 controller attitudeIndicator)
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${SDL2_INCLUDE_DIRS}
@@ -34,4 +37,12 @@ add_custom_command(
             ${CMAKE_SOURCE_DIR}/extern/SDL_GameControllerDB/gamecontrollerdb.txt
             $<TARGET_FILE_DIR:submarineController>/gamecontrollerdb.txt
     COMMENT "Copying gamecontrollerdb.txt from submodule"
+)
+
+add_custom_command(
+    TARGET submarineController POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory
+            ${CMAKE_SOURCE_DIR}/processing/AttitudeIndicator/application.linux64
+            $<TARGET_FILE_DIR:submarineController>/AttitudeIndicator
+    COMMENT "Copying exported Processing standalone application"
 )

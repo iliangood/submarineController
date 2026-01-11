@@ -3,10 +3,11 @@
 #include <thread>
 
 #include <SDL2/SDL.h>
-
-
+#include <filesystem>
 
 #include <udptransmitter.h>
+
+#include "attitudeIndicator.h"
 
 #include "controller.h"
 #include "packets.h"
@@ -26,9 +27,8 @@ int main()
 	std::chrono::steady_clock::time_point lastSend = std::chrono::steady_clock::now();
 	uint64_t last_packet_rx_time_message = 0;
 	uint64_t ping_ms = 0;
-	uint64_t counter = 0;
-	uint64_t lostPackets = 0;
-	uint64_t lastCount = 0;
+
+	AttitudeIndicator horizon("processing", "./AttitudeIndicator");
 
 	SDL_Event event;
 
@@ -42,20 +42,18 @@ int main()
     }
 
 		ReceiveInfo rci = transmitter.receiveData(&msg);
-		if(recieved(rci) && rci.dataSize > SubmarinePacket::serializedSize())
+		if(recieved(rci) && rci.dataSize == SubmarinePacket::serializedSize())
 		{
 			/*if(rci.dataSize != SubmarinePacket::serializedSize())
 			{
 				spdlog::warn("incorrect packet size from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
 			}*/
-			SubmarinePacket inPacket = msg.read<SubmarinePacket>();
+			SubmarinePacket inPacket = SubmarinePacket::deserialize(msg.read<std::array<uint8_t,40>>());
 			last_packet_rx_time_message = inPacket.sendTime_ms;
 			ping_ms = millis() - inPacket.last_packet_rx_time_message;
 			spdlog::info("received packet from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
-			uint64_t curCount = msg.read<uint64_t>();
-			spdlog::info("lost packets:{}", lostPackets += curCount - lastCount - 1);
-			lastCount = curCount;
-			const Axises& Saxises = inPacket.currentPos;
+			//uint64_t curCount = msg.read<uint64_t>();
+			Axises Saxises = inPacket.currentPos;
 			std::cout << Saxises[3] << ' ' << Saxises[4] << ' ' << Saxises[5] << std::endl;
 		}
 		msg.clear();
@@ -67,10 +65,7 @@ int main()
 					last_packet_rx_time_message,
 					Controller::getInstance().axises()
 				}.serialize());
-			msg.push(counter);
-			++counter;
 			transmitter.sendData(msg);
-			std::cout << "count:" << counter << '\n';
 			//std::cout << "send time:" << millis() << '\n';
 		}
 		msg.clear();
