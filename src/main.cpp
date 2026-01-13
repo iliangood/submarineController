@@ -28,7 +28,7 @@ int main()
 	uint64_t last_packet_rx_time_message = 0;
 	uint64_t ping_ms = 0;
 
-	AttitudeIndicator horizon("processing", "./AttitudeIndicator");
+	AttitudeIndicator horizon;
 
 	SDL_Event event;
 
@@ -55,6 +55,7 @@ int main()
 			//uint64_t curCount = msg.read<uint64_t>();
 			Axises Saxises = inPacket.currentPos;
 			std::cout << Saxises[3] << ' ' << Saxises[4] << ' ' << Saxises[5] << std::endl;
+			horizon.sendAngles(-static_cast<double>(Saxises[4])/std::numeric_limits<int16_t>::max()*180, static_cast<double>(Saxises[3])/std::numeric_limits<int16_t>::max()*180);
 		}
 		msg.clear();
 		if(std::chrono::steady_clock::now() - lastSend > std::chrono::milliseconds(100))

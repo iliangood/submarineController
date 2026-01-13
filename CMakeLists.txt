@@ -42,7 +42,7 @@ add_custom_command(
 add_custom_command(
     TARGET submarineController POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_directory
-            ${CMAKE_SOURCE_DIR}/processing/AttitudeIndicator/application.linux64
+            ${CMAKE_SOURCE_DIR}/processing/AttitudeIndicator/
             $<TARGET_FILE_DIR:submarineController>/AttitudeIndicator
     COMMENT "Copying exported Processing standalone application"
 )

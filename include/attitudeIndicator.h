@@ -1,4 +1,3 @@
-// AttitudeIndicator.h (без изменений)
 #ifndef PROCESSING_ATTITUDE_CONTROLLER_H
 #define PROCESSING_ATTITUDE_CONTROLLER_H
 
@@ -13,20 +12,23 @@
 
 class AttitudeIndicator {
 public:
-    AttitudeIndicator(const std::string& processing_path, const std::string& sketch_path);
-    ~AttitudeIndicator() = default;
+    AttitudeIndicator();
+    ~AttitudeIndicator();
+
     void sendAngles(double pitch, double roll);
 
 private:
-    void launchProcessing(const std::string& processing_path, const std::string& sketch_path);
+    void launch();
 
 #ifdef _WIN32
-    HANDLE hProcess = NULL;
-    HANDLE hStdinWrite = NULL;
+    HANDLE hProcess = nullptr;
+    HANDLE hStdinWrite = nullptr;
 #else
     pid_t child_pid = -1;
     int pipe_fd = -1;
 #endif
+
+    std::string launcher_path;  // полный путь к исполняемому файлу
 };
 
 #endif
