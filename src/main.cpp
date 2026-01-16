@@ -44,10 +44,6 @@ int main()
 		ReceiveInfo rci = transmitter.receiveData(&msg);
 		if(recieved(rci) && rci.dataSize == SubmarinePacket::serializedSize())
 		{
-			/*if(rci.dataSize != SubmarinePacket::serializedSize())
-			{
-				spdlog::warn("incorrect packet size from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
-			}*/
 			SubmarinePacket inPacket = SubmarinePacket::deserialize(msg.read<std::array<uint8_t,40>>());
 			last_packet_rx_time_message = inPacket.sendTime_ms;
 			ping_ms = millis() - inPacket.last_packet_rx_time_message;
