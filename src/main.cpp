@@ -44,11 +44,12 @@ int main()
 		ReceiveInfo rci = transmitter.receiveData(&msg);
 		if(recieved(rci) && rci.dataSize == SubmarinePacket::serializedSize())
 		{
-			SubmarinePacket inPacket = SubmarinePacket::deserialize(msg.read<std::array<uint8_t,40>>());
+			SubmarinePacket inPacket = SubmarinePacket::deserialize(msg.read<std::array<uint8_t,44>>());
 			last_packet_rx_time_message = inPacket.sendTime_ms;
 			ping_ms = millis() - inPacket.last_packet_rx_time_message;
 			spdlog::info("received packet from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
 			//uint64_t curCount = msg.read<uint64_t>();
+			std::cout << "depth:" << inPacket.depth << '\n';
 			Axises Saxises = inPacket.currentPos;
 			std::cout << Saxises[3] << ' ' << Saxises[4] << ' ' << Saxises[5] << std::endl;
 			horizon.sendAngles(-static_cast<double>(Saxises[4])/std::numeric_limits<int16_t>::max()*180, static_cast<double>(Saxises[3])/std::numeric_limits<int16_t>::max()*180);
