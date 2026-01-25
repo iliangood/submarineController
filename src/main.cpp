@@ -37,7 +37,7 @@ int main()
 
 		while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) {
-            return 0; // Завершить программу при Ctrl+C или закрытии окна
+            return 0;
         }
     }
 
@@ -48,7 +48,6 @@ int main()
 			last_packet_rx_time_message = inPacket.sendTime_ms;
 			ping_ms = millis() - inPacket.last_packet_rx_time_message;
 			spdlog::info("received packet from {}", rci.remoteIP.value_or(IPAddress(0,0,0,0)).toString());
-			//uint64_t curCount = msg.read<uint64_t>();
 			std::cout << "depth:" << inPacket.depth << '\n';
 			Axises Saxises = inPacket.currentPos;
 			std::cout << Saxises[3] << ' ' << Saxises[4] << ' ' << Saxises[5] << std::endl;
@@ -64,10 +63,9 @@ int main()
 					Controller::getInstance().axises()
 				}.serialize());
 			transmitter.sendData(msg);
-			//std::cout << "send time:" << millis() << '\n';
 		}
 		msg.clear();
-		const Axises& axises = Controller::getInstance().axises();
+		//const Axises& axises = Controller::getInstance().axises();
 		//std::cout << axises[0] << ' ' << axises[1] << ' ' << axises[2] << ' ' << axises[3] << ' ' << axises[4] << ' ' << axises[5] << '\n';
 		//std::cout << "ping:" << ping_ms << "ms" << std::endl;
 		//std::cout << "target IP:" << transmitter.targetIP() << std::endl;
