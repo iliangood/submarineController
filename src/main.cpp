@@ -51,7 +51,7 @@ int main()
 			std::cout << "depth:" << inPacket.depth << '\n';
 			Axises Saxises = inPacket.currentPos;
 			std::cout << Saxises[3] << ' ' << Saxises[4] << ' ' << Saxises[5] << std::endl;
-			horizon.sendAngles(-static_cast<double>(Saxises[4])/std::numeric_limits<int16_t>::max()*180, static_cast<double>(Saxises[3])/std::numeric_limits<int16_t>::max()*180);
+			horizon.sendAngles(-static_cast<double>(Saxises[4])/std::numeric_limits<int16_t>::max()*360, static_cast<double>(Saxises[3])/std::numeric_limits<int16_t>::max()*360);
 		}
 		msg.clear();
 		if(std::chrono::steady_clock::now() - lastSend > std::chrono::milliseconds(100))
