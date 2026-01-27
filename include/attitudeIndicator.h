@@ -15,7 +15,7 @@ public:
     AttitudeIndicator();
     ~AttitudeIndicator();
 
-    void sendAngles(double pitch, double roll);
+    void sendAngles(double pitch, double roll, double depth);
 
 private:
     void launch();

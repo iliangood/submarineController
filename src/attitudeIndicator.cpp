@@ -68,8 +68,10 @@ AttitudeIndicator::~AttitudeIndicator() {
 #endif
 }
 
-void AttitudeIndicator::sendAngles(double pitch, double roll) {
-    std::string cmd = "pitch:" + std::to_string(pitch) + " roll:" + std::to_string(roll) + "\n";
+void AttitudeIndicator::sendAngles(double pitch, double roll, double depth) {
+    std::string cmd = "pitch:" + std::to_string(pitch) +
+                      " roll:" + std::to_string(roll) +
+                      " depth:" + std::to_string(depth) + "\n";
 
 #ifdef _WIN32
     if (hStdinWrite) {
