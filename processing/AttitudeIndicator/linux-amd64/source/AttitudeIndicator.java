@@ -68,7 +68,6 @@ public void draw() {
   
   // Ограничения значений
   pitch = constrain(pitch, -90, 90);
-  depth = constrain(depth, 0, 300);
   
   float diam = min(width, height) * 0.75f;
   float pixelsPerDegree = (diam * 0.8f) / 180.0f; // 180 градусов -> span
@@ -171,7 +170,11 @@ public void draw() {
   float depthBarWidth = 30;
   float depthBarHeight = height * 0.65f;
   
-  float depthY = map(depth, 0, depthMax, height/2.0f - depthBarHeight/2.0f, height/2.0f + depthBarHeight/2.0f);
+  float depthClamped = constrain(depth, 0, depthMax);
+
+float depthY = map(depthClamped, 0, depthMax,
+                   height/2.0f - depthBarHeight/2.0f,
+                   height/2.0f + depthBarHeight/2.0f);
   
   if (width < 450) {
     // слишком узкое окно — просто текстовые значения
