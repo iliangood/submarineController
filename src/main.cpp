@@ -35,11 +35,12 @@ int main()
 	while(true)
 	{
 
-		while (SDL_PollEvent(&event)) {
-        if (event.type == SDL_QUIT) {
-            return 0;
-        }
-    }
+		while (SDL_PollEvent(&event)) 
+		{		
+			if (event.type == SDL_QUIT) {
+				return 0;
+			}
+    	}
 
 		ReceiveInfo rci = transmitter.receiveData(&msg);
 		if(recieved(rci) && rci.dataSize == SubmarinePacket::serializedSize())
