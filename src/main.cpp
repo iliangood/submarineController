@@ -37,10 +37,16 @@ int main()
 
 		while (SDL_PollEvent(&event)) 
 		{		
-			if (event.type == SDL_QUIT) {
+			switch (event.type)
+			{
+			case SDL_QUIT:
 				return 0;
+				break;
+			
+			default:
+				break;
 			}
-    	}
+		}
 
 		ReceiveInfo rci = transmitter.receiveData(&msg);
 		if(recieved(rci) && rci.dataSize == SubmarinePacket::serializedSize())
@@ -73,5 +79,5 @@ int main()
 		std::this_thread::sleep_for(std::chrono::milliseconds(10));
 	}
 	
-    return 0;
+	return 0;
 }
