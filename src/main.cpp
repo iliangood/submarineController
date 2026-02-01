@@ -70,8 +70,8 @@ int main()
 					Controller::getInstance().axises()
 				}.serialize());
 			transmitter.sendData(msg);
+			msg.clear();
 		}
-		msg.clear();
 		//const Axises& axises = Controller::getInstance().axises();
 		//std::cout << axises[0] << ' ' << axises[1] << ' ' << axises[2] << ' ' << axises[3] << ' ' << axises[4] << ' ' << axises[5] << '\n';
 		//std::cout << "ping:" << ping_ms << "ms" << std::endl;
