@@ -2,7 +2,6 @@
 #define CONTROLLER_H
 
 #include <inttypes.h>
-#include <vector>
 #include <map>
 #include <mutex>
 
