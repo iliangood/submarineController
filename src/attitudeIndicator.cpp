@@ -5,6 +5,10 @@
 #include <signal.h>
 #include <sys/wait.h>
 
+#ifdef __linux__
+#include <unistd.h>
+#endif
+
 namespace fs = std::filesystem;
 
 AttitudeIndicator::AttitudeIndicator() {
